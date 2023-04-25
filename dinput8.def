@@ -1,0 +1,8 @@
+LIBRARY   dinput8
+EXPORTS
+   DirectInput8Create  = hk_DirectInput8Create  @1
+   DllCanUnloadNow     = hk_DllCanUnloadNow     PRIVATE
+   DllGetClassObject   = hk_DllGetClassObject   PRIVATE
+   DllRegisterServer   = hk_DllRegisterServer   PRIVATE
+   DllUnregisterServer = hk_DllUnregisterServer PRIVATE
+   GetdfDIJoystick     = hk_GetdfDIJoystick     @6
