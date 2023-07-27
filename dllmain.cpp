@@ -82,6 +82,13 @@ void LoadMods()
     }
 }
 
+DWORD WINAPI MainThread(LPVOID lpParam)
+{
+    Sleep(5000);
+    LoadMods();
+    return 0;
+}
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -93,7 +100,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         ULog::FileName = "mod_loader.log";
 
         InitHooks();
-        LoadMods();
+        CreateThread(0, 0, &MainThread, 0, 0, 0);
         break;
     case DLL_PROCESS_DETACH:
     case DLL_THREAD_ATTACH:
