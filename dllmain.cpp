@@ -44,9 +44,19 @@ bool IsValid(HANDLE h) { return h != NULL && h != INVALID_HANDLE_VALUE; }
 
 void InitHooks()
 {
-    std::string dllpath = GetWinAPIString(GetSystemDirectoryA) + "\\dinput8.dll";
-    ULog::Get().println("Original library path: %s", dllpath.c_str());
+    std::string dllpath = "dinput8.original.dll";
     HMODULE target = LoadLibraryA(dllpath.c_str());
+
+    if (target)
+    {
+        ULog::Get().println("Found \"%s\". Redirecting calls to this DLL");
+    }
+    else
+    {
+        dllpath = GetWinAPIString(GetSystemDirectoryA) + "\\dinput8.dll";
+        ULog::Get().println("Original library path: %s", dllpath.c_str());
+        target = LoadLibraryA(dllpath.c_str());
+    }
 
     ULog::Get().println("Loading original library: %p %d", target, GetLastError());
 
