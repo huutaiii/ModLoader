@@ -1,3 +1,3 @@
 [submodule "ModUtils"]
 	path = ModUtils
-	url = ..\\ModUtils
+	url = https://github.com/huutaiii/ModUtils.git
