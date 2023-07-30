@@ -1,10 +1,12 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "framework.h"
-#include <ModUtils.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <algorithm>
+
+#include <ModUtils.h>
+std::string ULog::FileName = "mod_loader.log";
 
 //#pragma comment (lib, "dinput8.lib")
 
@@ -42,6 +44,11 @@ static inline void trim(std::string& s) {
 
 bool IsValid(HANDLE h) { return h != NULL && h != INVALID_HANDLE_VALUE; }
 
+struct UConfig
+{
+    DWORD delayMilisec = 5000;
+} Config;
+
 void InitHooks()
 {
     std::string dllpath = "dinput8.original.dll";
@@ -49,7 +56,7 @@ void InitHooks()
 
     if (target)
     {
-        ULog::Get().println("Found \"%s\". Redirecting calls to this DLL");
+        ULog::Get().println("Found \"%s\". Redirecting calls to this DLL", dllpath.c_str());
     }
     else
     {
@@ -71,9 +78,12 @@ void InitHooks()
     }
 }
 
+// (unused) keeps tracks of child dlls
 std::vector<HMODULE> Modules;
 
-void LoadMods()
+std::vector<std::string> EarlyModFileNames;
+std::vector<std::string> ModFileNames;
+void ReadModList()
 {
     std::ifstream list("mod_loader_list.txt");
     for (std::string line; std::getline(list, line); )
@@ -81,21 +91,44 @@ void LoadMods()
         trim(line);
         if (!line.empty() && line[0] != '#')
         {
-            HMODULE hMod = LoadLibraryA(line.c_str());
-            ULog::Get().println("%s module: %s", IsValid(hMod) ? "Loaded" : "Couldn't load", line.c_str());
-
-            if (IsValid(hMod))
-            {
-                Modules.push_back(hMod);
-            }
+            bool earlyLoad = line[0] == '*';
+            std::string modFileName = earlyLoad ? line.substr(1) : line;
+            (earlyLoad ? EarlyModFileNames : ModFileNames).push_back(modFileName);
         }
+    }
+}
+
+void LoadMod(std::string relPath)
+{
+    HMODULE hMod = LoadLibraryA(relPath.c_str());
+    ULog::Get().println("%s module: %s", IsValid(hMod) ? "Loaded" : "Couldn't load", relPath.c_str());
+
+    if (IsValid(hMod))
+    {
+        Modules.push_back(hMod);
     }
 }
 
 DWORD WINAPI MainThread(LPVOID lpParam)
 {
-    Sleep(5000);
-    LoadMods();
+    ReadModList();
+
+    for (std::string mod : EarlyModFileNames)
+    {
+        LoadMod(mod);
+    }
+
+    if (ModFileNames.size())
+    {
+        ULog::Get().println("Delaying for %d miliseconds", Config.delayMilisec);
+        Sleep(Config.delayMilisec);
+
+        for (std::string mod : ModFileNames)
+        {
+            LoadMod(mod);
+        }
+    }
+
     return 0;
 }
 
@@ -107,8 +140,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        ULog::FileName = "mod_loader.log";
-
+        ULog::Get().println("Initializing ModLoader");
         InitHooks();
         CreateThread(0, 0, &MainThread, 0, 0, 0);
         break;
