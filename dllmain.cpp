@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include <ModUtils.h>
-std::string ULog::FileName = "mod_loader.log";
 
 //#pragma comment (lib, "dinput8.lib")
 
@@ -137,6 +136,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
                      )
 {
+    ULog::FileName = "mod_loader.log";
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
