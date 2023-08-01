@@ -1,2 +1,4 @@
 # New-line separated list of DLL files to load (lines with a leading # are ignored)
+# Prefix file names with '*' to load without delay
 SekiroCameraMod.dll
+*modengine.dll
