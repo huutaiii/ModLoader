@@ -45,7 +45,7 @@ bool IsValid(HANDLE h) { return h != NULL && h != INVALID_HANDLE_VALUE; }
 
 struct UConfig
 {
-    DWORD delayMilisec = 5000;
+    DWORD delayMilisec = 0;
 } Config;
 
 void InitHooks()
@@ -90,7 +90,8 @@ void ReadModList()
         trim(line);
         if (!line.empty() && line[0] != '#')
         {
-            bool earlyLoad = line[0] == '*';
+            //bool earlyLoad = line[0] == '*';
+            bool earlyLoad = false;
             std::string modFileName = earlyLoad ? line.substr(1) : line;
             (earlyLoad ? EarlyModFileNames : ModFileNames).push_back(modFileName);
         }
@@ -119,7 +120,7 @@ DWORD WINAPI MainThread(LPVOID lpParam)
 
     if (ModFileNames.size())
     {
-        ULog::Get().println("Delaying for %d miliseconds", Config.delayMilisec);
+        //ULog::Get().println("Delaying for %d miliseconds", Config.delayMilisec);
         Sleep(Config.delayMilisec);
 
         for (std::string mod : ModFileNames)
