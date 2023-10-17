@@ -1,2 +1,1 @@
 # New-line separated list of DLL files to load (lines with a leading # are ignored)
-SekiroCameraMod.dll

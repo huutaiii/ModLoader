@@ -1,0 +1,7 @@
+LIBRARY XINPUT9_1_0
+EXPORTS
+	DllMain								= hk_DllMain							@1
+	XInputGetCapabilities				= hk_XInputGetCapabilities				@2
+	XInputGetDSoundAudioDeviceGuids		= hk_XInputGetDSoundAudioDeviceGuids	@3
+	XInputGetState						= hk_XInputGetState						@4
+	XInputSetState						= hk_XInputSetState						@5

@@ -33,6 +33,12 @@
     <None Include="dinput8.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="version.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="xinput9_1_0.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="mod_loader_list.txt" />

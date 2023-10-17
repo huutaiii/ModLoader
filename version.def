@@ -1,0 +1,19 @@
+LIBRARY version
+EXPORTS
+	GetFileVersionInfoA				= hk_GetFileVersionInfoA			@1
+	GetFileVersionInfoByHandle		= hk_GetFileVersionInfoByHandle		@2
+	GetFileVersionInfoExA			= hk_GetFileVersionInfoExA			@3
+	GetFileVersionInfoExW			= hk_GetFileVersionInfoExW			@4
+	GetFileVersionInfoSizeA			= hk_GetFileVersionInfoSizeA		@5
+	GetFileVersionInfoSizeExA		= hk_GetFileVersionInfoSizeExA		@6
+	GetFileVersionInfoSizeExW		= hk_GetFileVersionInfoSizeExW		@7
+	GetFileVersionInfoSizeW			= hk_GetFileVersionInfoSizeW		@8
+	GetFileVersionInfoW				= hk_GetFileVersionInfoW			@9
+	VerFindFileA					= hk_VerFindFileA					@10
+	VerFindFileW					= hk_VerFindFileW					@11
+	VerInstallFileA					= hk_VerInstallFileA				@12
+	VerInstallFileW					= hk_VerInstallFileW				@13
+	VerLanguageNameA				= KERNEL32.VerLanguageNameA				@14
+	VerLanguageNameW				= KERNEL32.VerLanguageNameW				@15
+	VerQueryValueA					= hk_VerQueryValueA					@16
+	VerQueryValueW					= hk_VerQueryValueW					@17

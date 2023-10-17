@@ -8,7 +8,18 @@
 #include <ModUtils.h>
 
 //#pragma comment (lib, "dinput8.lib")
+//#pragma comment (lib, "version.lib")
 
+#define TARGET_DINPUT8 0
+#define TARGET_VERSION 1
+#define TARGET_XINPUT9_1_0 2
+
+#ifndef TARGET_MODULE
+    #define TARGET_MODULE TARGET_DINPUT8
+#endif
+
+#if TARGET_MODULE == TARGET_DINPUT8
+#define TARGET_NAME "dinput8"
 extern "C"
 {
     __declspec(dllexport) void hk_DirectInput8Create();
@@ -20,6 +31,50 @@ extern "C"
 
     FARPROC Addresses[6];
 }
+#endif
+
+#if TARGET_MODULE == TARGET_VERSION
+#define TARGET_NAME "version"
+extern "C"
+{
+    void hk_GetFileVersionInfoA();
+    void hk_GetFileVersionInfoByHandle();
+    void hk_GetFileVersionInfoExA();
+    void hk_GetFileVersionInfoExW();
+    void hk_GetFileVersionInfoSizeA();
+    void hk_GetFileVersionInfoSizeExA();
+    void hk_GetFileVersionInfoSizeExW();
+    void hk_GetFileVersionInfoSizeW();
+    void hk_GetFileVersionInfoW();
+    void hk_VerFindFileA();
+    void hk_VerFindFileW();
+    void hk_VerInstallFileA();
+    void hk_VerInstallFileW();
+    void hk_VerLanguageNameA();
+    void hk_VerLanguageNameW();
+    void hk_VerQueryValueA();
+    void hk_VerQueryValueW();
+
+    FARPROC Addresses[18];
+}
+#endif
+
+#if TARGET_MODULE == TARGET_XINPUT9_1_0
+extern "C" void hk_DllMain();
+#endif
+
+#if TARGET_MODULE == TARGET_XINPUT9_1_0
+#define TARGET_NAME "xinput9_1_0"
+extern "C"
+{
+    void hk_XInputGetCapabilities();
+    void hk_XInputGetDSoundAudioDeviceGuids();
+    void hk_XInputGetState();
+    void hk_XInputSetState();
+
+    FARPROC Addresses[5];
+}
+#endif
 
 // trim from start (in place)
 static inline void ltrim(std::string& s) {
@@ -50,8 +105,11 @@ struct UConfig
 
 void InitHooks()
 {
-    std::string dllpath = "dinput8.original.dll";
-    HMODULE target = LoadLibraryA(dllpath.c_str());
+    HMODULE target;
+    std::string dllpath;
+    dllpath = TARGET_NAME ".original.dll";
+    target = LoadLibraryA(dllpath.c_str());
+
 
     if (target)
     {
@@ -59,13 +117,15 @@ void InitHooks()
     }
     else
     {
-        dllpath = GetWinAPIString(GetSystemDirectoryA) + "\\dinput8.dll";
+        dllpath = GetWinAPIString(GetSystemDirectoryA) + "\\" TARGET_NAME ".dll";
         ULog::Get().println("Original library path: %s", dllpath.c_str());
+        SetLastError(0);
         target = LoadLibraryA(dllpath.c_str());
     }
 
     ULog::Get().println("Loading original library: %p %d", target, GetLastError());
 
+#if TARGET_MODULE == TARGET_DINPUT8
     if (target && target != INVALID_HANDLE_VALUE)
     {
         Addresses[0] = GetProcAddress(target, "DirectInput8Create");
@@ -75,6 +135,41 @@ void InitHooks()
         Addresses[4] = GetProcAddress(target, "DllUnregisterServer");
         Addresses[5] = GetProcAddress(target, "GetdfDIJoystick");
     }
+#endif
+#if TARGET_MODULE == TARGET_VERSION
+    if (target && target != INVALID_HANDLE_VALUE)
+    {
+        Addresses[ 0] = GetProcAddress(target, "GetFileVersionInfoA");
+        Addresses[ 1] = GetProcAddress(target, "GetFileVersionInfoByHandle");
+        Addresses[ 2] = GetProcAddress(target, "GetFileVersionInfoExA");
+        Addresses[ 3] = GetProcAddress(target, "GetFileVersionInfoExW");
+        Addresses[ 4] = GetProcAddress(target, "GetFileVersionInfoSizeA");
+        Addresses[ 5] = GetProcAddress(target, "GetFileVersionInfoSizeExA");
+        Addresses[ 6] = GetProcAddress(target, "GetFileVersionInfoSizeExW");
+        Addresses[ 7] = GetProcAddress(target, "GetFileVersionInfoSizeW");
+        Addresses[ 8] = GetProcAddress(target, "GetFileVersionInfoW");
+        Addresses[ 9] = GetProcAddress(target, "VerFindFileA");
+        Addresses[10] = GetProcAddress(target, "VerFindFileW");
+        Addresses[11] = GetProcAddress(target, "VerInstallFileA");
+        Addresses[12] = GetProcAddress(target, "VerInstallFileW");
+        //Addresses[13] = GetProcAddress(target, "VerLanguageNameA");
+        //Addresses[14] = GetProcAddress(target, "VerLanguageNameW");
+        //Addresses[13] = reinterpret_cast<FARPROC>(&VerLanguageNameA);
+        //Addresses[14] = reinterpret_cast<FARPROC>(&VerLanguageNameW);
+        Addresses[15] = GetProcAddress(target, "VerQueryValueA");
+        Addresses[16] = GetProcAddress(target, "VerQueryValueW");
+    }
+#endif
+#if TARGET_MODULE == TARGET_XINPUT9_1_0
+    if (target && target != INVALID_HANDLE_VALUE)
+    {
+        Addresses[0] = GetProcAddress(target, "DllMain");
+        Addresses[1] = GetProcAddress(target, "XInputGetCapabilities");
+        Addresses[2] = GetProcAddress(target, "XInputGetDSoundAudioDeviceGuids");
+        Addresses[3] = GetProcAddress(target, "XInputGetState");
+        Addresses[4] = GetProcAddress(target, "XInputSetState");
+    }
+#endif
 }
 
 // (unused) keeps tracks of child dlls
@@ -109,6 +204,23 @@ void LoadMod(std::string relPath)
     }
 }
 
+void FindWndProc(HWND hwnd)
+{
+    WNDPROC proc = (WNDPROC)GetWindowLongPtrA(hwnd, GWLP_WNDPROC);
+    ULog::Get().println("wndproc %s %p", GetWinAPIString(GetWindowTextA, hwnd).c_str(), reinterpret_cast<LPVOID>(proc));
+}
+
+BOOL CALLBACK EnumWndCallback(HWND hwnd, LPARAM param)
+{
+    DWORD procID = 0;
+    GetWindowThreadProcessId(hwnd, &procID);
+    if (procID == GetCurrentProcessId())
+    {
+        FindWndProc(hwnd);
+    }
+    return TRUE;
+}
+
 DWORD WINAPI MainThread(LPVOID lpParam)
 {
     ReadModList();
@@ -128,6 +240,14 @@ DWORD WINAPI MainThread(LPVOID lpParam)
             LoadMod(mod);
         }
     }
+
+    while (true)
+    {
+        Sleep(1000);
+
+        EnumWindows(&EnumWndCallback, NULL);
+    }
+    ULog::Get().dprintln("aaaaaaaaaaaaa");
 
     return 0;
 }
