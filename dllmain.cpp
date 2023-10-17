@@ -10,6 +10,8 @@
 //#pragma comment (lib, "dinput8.lib")
 //#pragma comment (lib, "version.lib")
 
+
+// Set the VC+ project 'Target Name' to the according file name in all caps
 #define TARGET_DINPUT8 0
 #define TARGET_VERSION 1
 #define TARGET_XINPUT9_1_0 2
@@ -241,13 +243,15 @@ DWORD WINAPI MainThread(LPVOID lpParam)
         }
     }
 
-    while (true)
-    {
-        Sleep(1000);
+#ifdef _DEBUG
+    //for (int i = 0; i < 10; ++i)
+    //{
+    //    Sleep(1000);
 
-        EnumWindows(&EnumWndCallback, NULL);
-    }
-    ULog::Get().dprintln("aaaaaaaaaaaaa");
+    //    EnumWindows(&EnumWndCallback, NULL);
+    //}
+    //ULog::Get().dprintln("aaaaaaaaaaaaa");
+#endif
 
     return 0;
 }
